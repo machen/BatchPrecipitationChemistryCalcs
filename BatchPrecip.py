@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import root
 
 """Script to generate plots for batch kinetics in a few conditions.
 Considers well-mixed, batch reaction conditions, with a constant surface area and volume.
@@ -51,6 +52,37 @@ def simulatePrecipNoCO3(totCa, totC, k_react, Keq_solid, n_rxnOrder, dt, t_end):
     # Save results to dictionary
     resultDict = {'CO3': CO3, 'Ca': Ca, 'rates': rates, 'times': times}
     return resultDict
+
+
+def HRootFinder(K1,K2,Ca_total,C_total):
+        #TODO: TEST ME
+        Kw = 10**-14
+        functionH = lambda x: K1*K2*x**4+(K2+2*Ca_total*K2*K1)*x**3+(1+2*Ca_total-Kw*K1*K2-K2*C_tot)*x**2+(2*Ca_total-2*C_total-Kw*K2)*x-Kw
+        roots = root(functionH, [-1, -10**-7, 10**-7, 1])
+        return roots
+
+
+def simulatePrecipCO3Equil(totCa, totC, k_react, Keq_solid, n_rxnOrder, K1, K2, dt, t_end):
+    # Initialize parameters
+    K2 = 10**-14
+    times = np.arange(0, t_end+dt, dt)
+    NPoints = np.shape(times)
+    Ca = np.zeros(NPoints)
+    CO3 = np.zeros(NPoints)
+    C_total = np.zeros(NPoints)
+    C_total[0] = totC
+    Ca_total = np.zeros(NPoints)
+    Ca_total[0] = totCa
+    H = np.zeros(NPoints)
+    rates = np.zeros(NPoints)
+
+    # Begin calculation
+    for timeIndex in range(0, NPoints[0]-1, 1):
+        # Calculate equlibrium state, starting with H+
+        # Need funtion to actually calculate roots and then give the physically meaningful result
+        time = timeIndex
+    result = {'totC': C_total, 'totCa': Ca_total, 'H+': H, 'Ca': Ca, 'CO3': CO3, 'rates':rates}
+    return result
 
 
 def main():
