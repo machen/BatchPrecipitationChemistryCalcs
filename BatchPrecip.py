@@ -55,16 +55,18 @@ def simulatePrecipNoCO3(totCa, totC, k_react, Keq_solid, n_rxnOrder, dt, t_end):
 
 
 def HRootFinder(K1,K2,Ca_total,C_total):
-        #TODO: TEST ME
+        #TODO: Need additional criteria to eliminate possible options. Likely charge balance confirmation
         Kw = 10**-14
-        functionH = lambda x: K1*K2*x**4+(K2+2*Ca_total*K2*K1)*x**3+(1+2*Ca_total-Kw*K1*K2-K2*C_tot)*x**2+(2*Ca_total-2*C_total-Kw*K2)*x-Kw
+        functionH = lambda x: K1*K2*x**4+(K2+2*Ca_total*K2*K1)*x**3+(1+2*Ca_total-Kw*K1*K2-K2*C_total)*x**2+(2*Ca_total-2*C_total-Kw*K2)*x-Kw
         roots = root(functionH, [-1, -10**-7, 10**-7, 1])
-        return roots
+        Hvals = roots.x
+        Cvals = C_total/(1+K2*Hvals+K1*K2*Hvals**2)
+        selector = np.logical_and(Hvals>0,Cvals<C_total)
+        return (Hvals[selector],Cvals[selector])
 
 
 def simulatePrecipCO3Equil(totCa, totC, k_react, Keq_solid, n_rxnOrder, K1, K2, dt, t_end):
     # Initialize parameters
-    K2 = 10**-14
     times = np.arange(0, t_end+dt, dt)
     NPoints = np.shape(times)
     Ca = np.zeros(NPoints)
@@ -87,15 +89,17 @@ def simulatePrecipCO3Equil(totCa, totC, k_react, Keq_solid, n_rxnOrder, K1, K2, 
 
 def main():
     # User inputs/flags
-    Ca_Initial = 1E-3 # Molar
-    CO3_Initial = 1E-3 # Molar
+    Ca_Initial = 3E-3 # Molar
+    CO3_Initial = 3E-3 # Molar
     k = 1E-6 # Mol/s
     Keq = 10**-8.54
     dt = 1E-3 # s
     t_end = 100
     reactionOrder = 1
 
-    nonEquilData = simulatePrecipNoCO3(Ca_Initial, CO3_Initial, k, Keq, reactionOrder, dt, t_end)
+    hRoots = HRootFinder(10**10.3, 10**6.3, Ca_Initial, CO3_Initial)
+    print(hRoots)
+    # nonEquilData = simulatePrecipNoCO3(Ca_Initial, CO3_Initial, k, Keq, reactionOrder, dt, t_end)
 
     return 0
 
